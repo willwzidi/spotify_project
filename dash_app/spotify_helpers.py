@@ -1,10 +1,21 @@
 import requests
 import pandas as pd
 import numpy as np
+import json
+from joblib import load
+from sklearn.feature_extraction.text import CountVectorizer
 
 # Spotify API credentials
 CLIENT_ID = 'fc668f7d3ed94d9f9d0f4f8e9c8af9ad'
 CLIENT_SECRET = 'feb9efe5c0224e92a44c52e22aa5b9a2'
+
+# Load PCA model and vocabulary
+PCA_MODEL = load("incremental_pca_model.pkl")
+with open("vocabulary.json", "r") as file:
+    VOCABULARY = json.load(file)
+
+VECTORIZE = CountVectorizer(vocabulary=VOCABULARY)
+
 
 def get_spotify_token():
     url = "https://accounts.spotify.com/api/token"
@@ -19,6 +30,7 @@ def get_spotify_token():
         print(f"Error fetching token: {response.status_code} - {response.text}")
         return None
 
+
 def search_podcasts(query, token):
     url = "https://api.spotify.com/v1/search"
     headers = {"Authorization": f"Bearer {token}"}
@@ -26,16 +38,11 @@ def search_podcasts(query, token):
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
         results = response.json()["shows"]["items"]
-        query_lower = query.lower()
-        filtered_results = sorted(
-            results,
-            key=lambda x: query_lower in x["name"].lower() or query_lower in x["description"].lower(),
-            reverse=True,
-        )
-        return filtered_results
+        return results
     else:
         print(f"Error: {response.status_code} - {response.text}")
         return []
+
 
 def generate_clustering_data(podcasts):
     data = []
@@ -43,8 +50,15 @@ def generate_clustering_data(podcasts):
         data.append({
             "Podcast": podcast["name"],
             "Episode": podcast["description"][:50] + "...",
-            "Metric 1": podcast.get("popularity", np.random.uniform(0.5, 1.0)),
-            "Metric 2": podcast.get("total_episodes", np.random.randint(5, 100)) / 100,
+            "Metric 1": np.random.uniform(0.5, 1.0),
+            "Metric 2": np.random.uniform(0.5, 1.0),
             "Metric 3": np.random.uniform(0.5, 1.0),
         })
     return pd.DataFrame(data)
+
+
+def use_pca(data):
+    text_data = data["Podcast"].tolist()
+    text_features = VECTORIZE.transform(text_data)
+    pca_features = PCA_MODEL.transform(text_features.toarray())
+    return pca_features

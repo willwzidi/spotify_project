@@ -1,4 +1,4 @@
-from dash import dcc, html, dash_table  # Import necessary Dash modules
+from dash import dcc, html, dash_table
 import dash_bootstrap_components as dbc
 
 def create_header():
@@ -87,15 +87,53 @@ def create_content():
                                             dbc.Col(
                                                 dbc.Card(
                                                     [
-                                                        dbc.CardHeader("Metrics Visualization"),
+                                                        dbc.CardHeader("Select PCA Features for Plot"),
                                                         dbc.CardBody(
-                                                            dcc.Graph(id="metrics-visualization")
+                                                            dbc.Row(
+                                                                [
+                                                                    dbc.Col(
+                                                                        dcc.Dropdown(
+                                                                            id="pca-x-feature-dropdown",
+                                                                            options=[
+                                                                                {"label": f"PCA Feature {i+1}", "value": i}
+                                                                                for i in range(50)  # Adjust based on PCA model
+                                                                            ],
+                                                                            placeholder="X-axis PCA Feature",
+                                                                        ),
+                                                                        width=6,
+                                                                    ),
+                                                                    dbc.Col(
+                                                                        dcc.Dropdown(
+                                                                            id="pca-y-feature-dropdown",
+                                                                            options=[
+                                                                                {"label": f"PCA Feature {i+1}", "value": i}
+                                                                                for i in range(50)
+                                                                            ],
+                                                                            placeholder="Y-axis PCA Feature",
+                                                                        ),
+                                                                        width=6,
+                                                                    ),
+                                                                ]
+                                                            )
                                                         ),
                                                     ]
                                                 ),
                                                 width=6,
                                             ),
                                         ],
+                                    ),
+                                    html.Br(),
+                                    dbc.Row(
+                                        [
+                                            dbc.Col(
+                                                dbc.Card(
+                                                    dbc.CardBody(
+                                                        dcc.Graph(id="metrics-visualization")
+                                                    )
+                                                ),
+                                                width=12,
+                                            ),
+                                        ]
                                     ),
                                     html.Br(),
                                     html.H3("Nearest Podcasts/Episodes", className="text-center"),
@@ -123,7 +161,7 @@ def create_content():
 def create_layout():
     return dbc.Container(
         [
-            dcc.Store(id="clustering-data-store"),  # Store to hold clustering data
+            dcc.Store(id="clustering-data-store"),
             create_header(),
             dbc.Row(
                 [
