@@ -1,3 +1,4 @@
+import os
 import dash
 import dash_bootstrap_components as dbc
 from layout import create_layout
@@ -14,4 +15,5 @@ register_callbacks(app)
 
 # Run the App
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    port = int(os.environ.get("PORT", 8050))  # Defaults to 8050 if PORT is not set
+    app.run_server(debug=False, host="0.0.0.0", port=port)
